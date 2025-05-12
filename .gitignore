@@ -1,0 +1,43 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+dependency-reduced-pom.xml
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+
+# Node (if used)
+node_modules/
+
+# Docker
+*.pid
+*.seed
+*.swp
+*.tmp
+**/.docker
+
+# VSCode (если используешь)
+.vscode/
+
+# Kafka schema registry temp files (если есть)
+*.avsc
+
+# Test containers / integration data
+test-output/

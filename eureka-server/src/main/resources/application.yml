@@ -1,0 +1,15 @@
+server:
+  port: 8761  # Порт Eureka Server
+
+spring:
+  application:
+    name: eureka-server
+
+eureka:
+  client:
+    register-with-eureka: false  # Сам Eureka не регистрируется в себе
+    fetch-registry: false  # Он сам является реестром, не нужно ничего скачивать
+  server:
+    enable-self-preservation: false  # Отключает механизм самосохранения для тестов (можно включить в продакшене)
+
+    

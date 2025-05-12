@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/currency-service/v1_0__initial-setup.sql
+  - include:
+      file: db/changelog/currency-service/v1_1__insert-initial-data.sql

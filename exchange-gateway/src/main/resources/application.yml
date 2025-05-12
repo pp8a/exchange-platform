@@ -1,0 +1,58 @@
+server:
+  port: 8080  # Порт API Gateway
+
+spring:
+  application:
+    name: exchange-gateway
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true  # Auto found services in Eureka
+          lower-case-service-id: true  # All name services lower 
+          
+      routes:
+        # Currency Service 
+        - id: currency-service
+          uri: lb://currency-service
+          predicates:
+            - Path=/api/currency/**
+          filters:
+            - RewritePath=/api/currency/(?<segment>.*), /${segment}
+            - CircuitBreaker=name=currencyServiceCB,fallbackUri=forward:/fallback/currency
+
+        # Transaction Service
+        - id: transaction-service
+          uri: lb://transaction-service
+          predicates:
+            - Path=/api/transaction/**
+          filters:
+            - RewritePath=/api/transaction/(?<segment>.*), /${segment}
+            - CircuitBreaker=name=transactionServiceCB,fallbackUri=forward:/fallback/transaction
+    
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+      
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    info:
+      access: unrestricted
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      currencyServiceCB:
+        failureRateThreshold: 50  # Если 50% запросов проваливаются, включаем Circuit Breaker
+        waitDurationInOpenState: 5000ms  # 5 сек пауза перед попыткой восстановления
+      transactionServiceCB:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5000ms
