@@ -1,4 +1,4 @@
-# exchange-platform
+# 📦 Exchange Platform
 
 **Микросервисная система управления пользователями и переводами средств**
 
@@ -6,9 +6,10 @@
 
 ## 📦 Состав проекта
 
-- `auth-service` — аутентификация по email/phone и паролю, генерация JWT.
-- `currency-service` — управление аккаунтами, балансами, переводами и историей переводов.
-- `exchange-gateway` — API Gateway (WebFlux), маршрутизация запросов, JWT-фильтрация.
+- `currency-service` — микросервис для управления аккаунтами, балансами, денежными переводами и логированием в MongoDB через Kafka (WebFlux + PostgreSQL + Redis), миграция MongoDB (Mongock).
+- `exchange-gateway` —  API Gateway на Spring WebFlux, отвечает за маршрутизацию запросов, валидацию JWT, аутентификацию по email/phone и генерацию токенов.
+- `eureka-server` — сервер регистрации и обнаружения сервисов (Eureka).
+- `migration-service` — сервис миграций для PostgreSQL (Liquibase).
 
 ---
 
@@ -20,15 +21,40 @@ git clone https://github.com/your-username/exchange-platform.git
 cd exchange-platform
 
 # Запустите все сервисы и инфраструктуру
-docker-compose up --build
-```
+docker-compose up --build -d
 
-### Swagger
-Swagger UI доступен по адресу:
-```
-http://localhost:8081/swagger-ui.html
-```
+# Доступные сервисы
+- **Gateway**: http://localhost:8080  
+  ⤷ Центральная точка входа в систему через Spring Cloud Gateway.  
 
+- **Swagger UI (currency-service)**: http://localhost:8081/swagger-ui.html  
+  ⤷ Документация REST API микросервиса управления аккаунтами и переводами.  
+
+- **Kafka UI**: http://localhost:8088  
+  ⤷ Графический интерфейс для просмотра Kafka-топиков, сообщений и консюмер-групп.  
+
+- **Schema Registry**: http://localhost:8085  
+  ⤷ Используется для хранения Avro-схем сообщений Kafka.  
+
+- **PostgreSQL**: `jdbc:postgresql://localhost:5432/currency_db`  
+  ⤷ Основная база данных для хранения аккаунтов и операций.  
+
+- **MongoDB**: `mongodb://localhost:27017`  
+  ⤷ Используется для хранения событий (event sourcing) — переводов и изменений баланса.  
+
+- **Redis**: `redis://localhost:6379`  
+  ⤷ Кэширование актуального баланса и ускорение запросов к аккаунтам.  
+```
+## 🛠 Используемые технологии
+
+- **Java 21 + Spring Boot 3 + WebFlux**
+- **PostgreSQL + R2DBC**
+- **MongoDB + Mongock**
+- **Redis (Reactive)** - кэширование баланса
+- **Kafka (на KRaft) + Avro** — события `TransferEvent`, `UserEvent`
+- **Liquibase** — миграции для PostgreSQL (в `migration-service`)
+- **Mongock** — миграции MongoDB (`transfer_logs`, `currency_events`)
+- **OpenAPI (springdoc-openapi)** — Swagger UI для API документации
 ---
 
 ## 🔐 Аутентификация и пример использования
@@ -37,6 +63,7 @@ http://localhost:8081/swagger-ui.html
 
 ```
 POST http://localhost:8080/auth/token
+Content-Type: application/json
 {
   "identifier": "charlie@example.com",
   "password": "password3"
@@ -47,24 +74,12 @@ POST http://localhost:8080/auth/token
 
 ```
 PUT http://localhost:8080/api/currency/account/transfer
+Authorization: Bearer {access_token}
 {
   "toUserId": "00000000-0000-0000-0000-000000000001",
   "amount": 10.00
 }
 ```
-
----
-
-## ⚙️ Используемые технологии
-
-- **Java 21 + Spring Boot 3 + WebFlux**
-- **PostgreSQL + Liquibase** — миграции в `migration-service`
-- **MongoDB + Mongock** — события и логи
-- **Redis (Reactive)** — кэширование балансов
-- **Kafka KRaft + Avro** — события `TransferEvent`, `UserEvent`
-- **OpenAPI (SpringDoc 2.7.0)** — генерация документации
-- **Testcontainers** — интеграционные тесты
-- **Reactor Kafka** — Kafka consumer
 
 ---
 
@@ -115,7 +130,7 @@ PUT http://localhost:8080/api/currency/account/transfer
   - `clients`, `account`, `email_data`, `phone_data`, `client_personal_data`
 - **MongoDB**: миграции через **Mongock**
   - Коллекции: `transfer_logs`
-- **Kafka**: Avro-сообщения отправляются через `UserKafkaProducer`, потребляются и логируются в MongoDB
+- **Kafka**: Avro-сообщения отправляются через `**Producer`, потребляются и логируются в MongoDB
 
 ---
 
