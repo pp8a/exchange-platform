@@ -129,8 +129,9 @@ Authorization: Bearer {access_token}
 - **PostgreSQL**: миграции через **Liquibase** (в `migration-service`)
   - `clients`, `account`, `email_data`, `phone_data`, `client_personal_data`
 - **MongoDB**: миграции через **Mongock**
-  - Коллекции: `transfer_logs`
-- **Kafka**: Avro-сообщения отправляются через `**Producer`, потребляются и логируются в MongoDB
+  - Коллекции: `transfer_logs`(хранит историю переводов)
+- **Redis**: Используется для кэширования балансов пользователя с переменным TTL
+- **Kafka**: Avro-сообщения отправляются через `**Producer`, Consumer: получает события и логируют в MongoDB
 
 ---
 
